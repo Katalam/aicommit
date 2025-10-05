@@ -1,16 +1,16 @@
-use std::env;
 use std::time::Duration;
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use crate::api::structs::{APIError, ApiMessage, ChatCompletionRequest, ChatCompletionResponse};
 use crate::git::structs::GitDiff;
 use std::fs;
+use crate::config::functions::get_provider;
 
 pub fn make_api_request(diff: &GitDiff) -> String {
     let client = get_client();
 
     let response: Response = match client
-        .post("https://api.deepseek.com/v1/chat/completions")
+        .post(get_provider().endpoint)
         .headers(get_headers())
         .body(get_json_body(diff))
         .send()
@@ -58,36 +58,11 @@ pub fn make_api_request(diff: &GitDiff) -> String {
     }
 }
 
-pub fn get_api_key() -> String {
-    env::var("DEEPSEEK_API_KEY").unwrap_or_else(|_| String::new())
-}
-
-pub fn check_api_key_existence() -> bool {
-    match env::var("DEEPSEEK_API_KEY") {
-        Ok(val) => {
-            if val.is_empty() {
-                false
-            } else {
-                true
-            }
-        }
-        Err(_) => false,
-    }
-}
-
 fn get_headers() -> HeaderMap {
-    let api_key = match get_api_key() {
-        key if !key.is_empty() => key,
-        _ => {
-            eprintln!("API key not configured.");
-            return HeaderMap::new();
-        }
-    };
-
     let mut headers = HeaderMap::new();
     headers.insert(
         AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", api_key))
+        HeaderValue::from_str(&format!("Bearer {}", get_provider().api_key))
             .unwrap_or_else(|_| HeaderValue::from_static("Bearer invalid")),
     );
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));

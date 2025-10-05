@@ -1,16 +1,26 @@
-mod git;
 mod api;
+mod arguments;
 mod clipboard;
+mod config;
+mod git;
 
-use crate::api::functions::{make_api_request, check_api_key_existence};
+use std::env;
+use crate::api::functions::{make_api_request};
+use crate::arguments::functions::handle_arguments;
 use crate::git::functions::{check_git_repository_existence, get_git_diff};
 use crate::clipboard::functions::copy_to_clipboard;
+use crate::config::functions::{api_key_exist, check_config_exists, copy_default_config, validate_config};
 
 fn main() {
-    let api_key_exists = check_api_key_existence();
+    if handle_arguments(env::args().collect()) {
+        return;
+    }
 
-    if !api_key_exists {
-        println!("\x1b[93mDEEPSEEK_API_KEY environment variable is not set. Aborting...\x1b[0m");
+    if !check_config_exists() {
+        copy_default_config();
+    }
+
+    if !validate_config() {
         return;
     }
 
@@ -18,6 +28,15 @@ fn main() {
 
     if !is_git_repo {
         println!("\x1b[93mThis directory is not a Git repository.\x1b[0m");
+        return;
+    }
+
+    let api_key_exists = api_key_exist();
+
+    if !api_key_exists {
+        println!("\x1b[93mNo provider key is set. Aborting...\x1b[0m");
+        println!("Please check the config file under ~/.aicommit/config.json");
+
         return;
     }
 
