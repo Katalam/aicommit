@@ -5,6 +5,7 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::time::Duration;
+use clipboard::{ClipboardContext, ClipboardProvider};
 
 #[derive(Serialize)]
 struct ChatCompletionRequest {
@@ -93,7 +94,27 @@ fn main() {
         println!("{}. {}", i + 1, message.trim());
     }
 
-    // add select option
+    // Optionally, you can prompt the user to select one of the generated messages
+
+    println!("\nSelect a commit message by number (or press Enter to skip):");
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).expect("Failed to read line");
+    let input = input.trim();
+    if let Ok(choice) = input.parse::<usize>() {
+        if choice > 0 && choice <= messages.len() {
+            let selected_message = messages[choice - 1];
+            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+            ctx.set_contents(selected_message.to_string()).unwrap();
+
+            println!("\x1b[92mSelected commit message copied to clipboard:\x1b[0m");
+        } else {
+            println!("\x1b[93mInvalid selection.\x1b[0m");
+        }
+    } else if !input.is_empty() {
+        println!("\x1b[93mInvalid input.\x1b[0m");
+    } else {
+        println!("No commit message selected.");
+    }
 }
 
 fn check_git_repository_existence() -> bool {
