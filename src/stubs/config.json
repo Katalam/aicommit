@@ -7,7 +7,7 @@
 	},
 	{
 	  "name": "LOCAL",
-	  "api_key": "",
+	  "api_key": "lm-studio",
 	  "model": "liquid/lfm2-1.2b",
 	  "endpoint": "http://localhost:1234/v1/chat/completions"
 	}
