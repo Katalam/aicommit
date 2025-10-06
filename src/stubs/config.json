@@ -4,6 +4,12 @@
 	  "name": "DEEPSEEK",
 	  "api_key": "",
 	  "endpoint": "https://api.deepseek.com/v1/chat/completions"
+	},
+	{
+	  "name": "LOCAL",
+	  "api_key": "",
+	  "model": "liquid/lfm2-1.2b",
+	  "endpoint": "http://localhost:1234/v1/chat/completions"
 	}
   ],
   "default_provider": "DEEPSEEK"

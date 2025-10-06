@@ -45,6 +45,12 @@ fn ensure_directory_exists(path: &std::path::Path) {
 }
 
 pub fn api_key_exist() -> bool {
+    let provider = get_provider();
+
+    if provider.name.to_ascii_uppercase() == "LOCAL" {
+        return true;
+    }
+
     !get_provider().api_key.is_empty()
 }
 

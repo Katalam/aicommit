@@ -4,10 +4,12 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use crate::api::structs::{APIError, ApiMessage, ChatCompletionRequest, ChatCompletionResponse};
 use crate::git::structs::GitDiff;
 use std::fs;
+use std::process::Command;
 use crate::config::functions::get_provider;
 
 pub fn make_api_request(diff: &GitDiff) -> String {
     let client = get_client();
+    make_sure_local_server_is_running();
 
     let response: Response = match client
         .post(get_provider().endpoint)
@@ -81,8 +83,10 @@ fn get_request_body(diff: &GitDiff) -> ChatCompletionRequest {
     let system_message = get_system_message();
     let user_message = get_user_message(diff);
 
+    let provider = get_provider();
+
     ChatCompletionRequest {
-        model: "deepseek-chat".to_string(),
+        model: provider.model.to_string(),
         messages: vec![
             ApiMessage {
                 role: "system".to_string(),
@@ -125,4 +129,26 @@ fn get_user_message(diff: &GitDiff) -> String {
     user_message.push_str(diff.diff.as_str());
     user_message.push_str("\n\nProvide only the commit messages without any additional text.");
     user_message
+}
+
+fn make_sure_local_server_is_running() -> bool {
+    let provider = get_provider();
+
+    if provider.name.to_ascii_uppercase() == "LOCAL" {
+        let output = Command::new("lms")
+            .arg("server")
+            .arg("start")
+            .output()
+            .expect("Failed to execute lms command");
+
+        if !output.status.success() {
+            eprintln!(
+                "Error starting local server: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return false;
+        }
+    }
+
+    true
 }

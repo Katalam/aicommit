@@ -9,5 +9,6 @@ pub struct Config {
 pub struct Provider {
     pub name: String,
     pub api_key: String,
+    pub model: String,
     pub endpoint: String,
 }
