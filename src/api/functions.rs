@@ -3,7 +3,6 @@ use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use crate::api::structs::{APIError, ApiMessage, ChatCompletionRequest, ChatCompletionResponse};
 use crate::git::structs::GitDiff;
-use std::fs;
 use std::process::Command;
 use crate::config::functions::get_provider;
 
@@ -123,7 +122,7 @@ fn get_user_message(diff: &GitDiff) -> String {
         if message_count > 1 { "s" } else { "" },
     );
 
-    let format = fs::read_to_string("./src/api/prompt.md").expect("Unable to read prompt.md");
+    let format = String::from_utf8_lossy(include_bytes!("prompt.md"));
 
     user_message.push_str(&format);
     user_message.push_str(diff.diff.as_str());
